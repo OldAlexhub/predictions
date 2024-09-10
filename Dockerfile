@@ -1,18 +1,25 @@
-# Base image for R and Plumber
-FROM rstudio/plumber
+# Use a minimal base image
+FROM rstudio/plumber:latest
 
-# Install additional R packages needed
+# Install additional R packages
 RUN R -e "install.packages(c('dplyr', 'mongolite', 'prophet', 'lubridate', 'dotenv'))"
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy the current directory contents (which includes api.R) to /app
-COPY . /app
+# Use a .dockerignore file to avoid copying unnecessary files (such as .git, node_modules)
+# Copy only necessary files for the application
+COPY api.R /app/
 
-# Expose the port Plumber runs on
-EXPOSE 8000
+# Set environment variables securely (instead of hardcoding secrets in Dockerfile)
+ENV PORT=8000
 
-# Run the Plumber API with a fixed path to 'api.R'
-CMD ["R", "-e", "pr <- plumber::plumb('/app/api.R'); pr$run(host='0.0.0.0', port=8000)"]
+# Expose the port used by the Plumber API
+EXPOSE $PORT
+
+# Use a non-root user for security purposes
+USER plumber
+
+# Use ENTRYPOINT to ensure the correct process is run when the container starts
+ENTRYPOINT ["R", "-e", "pr <- plumber::plumb('/app/api.R'); pr$run(host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', 8000)))"]
 
