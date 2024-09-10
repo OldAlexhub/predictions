@@ -4,22 +4,28 @@ library(mongolite)
 library(prophet)
 library(lubridate)
 library(plumber)
+library(dotenv)
+
+Url <- Sys.getenv('Url')
 
 # MongoDB connection strings
 mongo_batteries <- mongo(
   collection = 'batteries',
-  url = 'mongodb+srv://mgad:mayo2016@evworldv2.eyf6v.mongodb.net/'
+  url = Url
 )
 
 mongo_forecasts <- mongo(
   collection = 'rangeforecasts',
-  url = 'mongodb+srv://mgad:mayo2016@evworldv2.eyf6v.mongodb.net/'
+  url = Url
 )
 
 # Define the Plumber API
+# Create a plumber router
+pr <- plumber$new()
+
 #* @param userId The ID of the user to process
 #* @get /processData
-function(userId) {
+pr$handle("GET", "/processData", function(userId) {
   
   # Check if the data for this userId has already been processed
   existing_predictions <- mongo_forecasts$find(query = paste0('{"userId": "', userId, '"}'))
@@ -75,8 +81,7 @@ function(userId) {
   mongo_forecasts$insert(predictions)
   
   return(list(message = paste("UserId", userId, "has been processed successfully.")))
-}
+})
 
 # Start the API
-pr <- plumber::plumb("api.R")
 pr$run(port = 8000)
