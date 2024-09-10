@@ -2,7 +2,7 @@
 FROM rstudio/plumber
 
 # Install additional R packages needed
-RUN R -e "install.packages(c('dplyr', 'mongolite', 'prophet', 'lubridate'))"
+RUN R -e "install.packages(c('dplyr', 'mongolite', 'prophet', 'lubridate', 'dotenv'))"
 
 # Set the working directory inside the container
 WORKDIR /app
