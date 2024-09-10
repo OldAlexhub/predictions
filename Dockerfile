@@ -1,13 +1,12 @@
-# Use a minimal base image
+# Use a minimal base image for Plumber
 FROM rstudio/plumber:latest
 
-# Install additional R packages
+# Install additional R packages with better layer caching
 RUN R -e "install.packages(c('dplyr', 'mongolite', 'prophet', 'lubridate', 'dotenv'))"
 
 # Set working directory
 WORKDIR /app
 
-# Use a .dockerignore file to avoid copying unnecessary files (such as .git, node_modules)
 # Copy only necessary files for the application
 COPY api.R /app/
 
@@ -17,9 +16,8 @@ ENV PORT=8000
 # Expose the port used by the Plumber API
 EXPOSE $PORT
 
-# Use a non-root user for security purposes
+# Switch to a non-root user for security purposes
 USER plumber
 
 # Use ENTRYPOINT to ensure the correct process is run when the container starts
 ENTRYPOINT ["R", "-e", "pr <- plumber::plumb('/app/api.R'); pr$run(host='0.0.0.0', port=as.numeric(Sys.getenv('PORT', 8000)))"]
-
