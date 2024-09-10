@@ -1,11 +1,14 @@
-# Base image for R
+# Base image for R and Plumber
 FROM rstudio/plumber
 
 # Install additional R packages needed
 RUN R -e "install.packages(c('dplyr', 'mongolite', 'prophet', 'lubridate'))"
 
-# Copy the API R script to the container
-COPY api.R /app/api.R
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the current directory contents (which includes api.R and Dockerfile) to /app
+COPY . /app
 
 # Expose the port Plumber runs on
 EXPOSE 8000
